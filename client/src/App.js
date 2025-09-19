@@ -13,6 +13,7 @@ import Sidebar from './components/common/Sidebar';
 import LoadingSpinner from './components/common/LoadingSpinner';
 
 // Pages
+import Homepage from './pages/Homepage';
 import Dashboard from './pages/Dashboard';
 import ProjectWorkspace from './pages/ProjectWorkspace';
 import ComponentLibrary from './pages/ComponentLibrary';
@@ -46,7 +47,7 @@ function AppContent() {
 
   // Handle authentication redirect
   useEffect(() => {
-    if (!loading && !user) {
+    if (!loading && !user && window.location.pathname.startsWith('/dashboard')) {
       navigate('/login');
     }
   }, [user, loading, navigate]);
@@ -139,11 +140,11 @@ function AppContent() {
               )}
 
               <Routes>
-                <Route path="/" element={<Dashboard />} />
+                <Route path="/dashboard" element={<Dashboard />} />
                 <Route path="/project/:id" element={<ProjectWorkspace />} />
                 <Route path="/components" element={<ComponentLibrary />} />
                 <Route path="/profile" element={<Profile />} />
-                <Route path="*" element={<Navigate to="/" replace />} />
+                <Route path="*" element={<Navigate to="/dashboard" replace />} />
               </Routes>
             </main>
           </div>
@@ -164,13 +165,14 @@ function AppContent() {
     );
   }
 
-  // Public routes (login/register)
+  // Public routes (homepage/login/register)
   return (
     <div className="min-h-screen bg-gray-50">
       <Routes>
+        <Route path="/" element={<Homepage />} />
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
-        <Route path="*" element={<Navigate to="/login" replace />} />
+        <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
 
       <Toaster

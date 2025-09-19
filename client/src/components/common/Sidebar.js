@@ -24,7 +24,7 @@ const Sidebar = ({ isOpen, onClose }) => {
   const menuItems = [
     {
       name: 'Dashboard',
-      path: '/',
+      path: '/dashboard',
       icon: Home,
       description: 'Overview and recent projects'
     },
