@@ -452,7 +452,7 @@ const TestimonialsSection = () => {
       name: "Sarah Chen",
       role: "Hardware Engineer",
       company: "TechCorp",
-      image: "https://images.unsplash.com/photo-1494790108755-2616b612b786?w=150&h=150&fit=crop&crop=face",
+      image: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='48' height='48' viewBox='0 0 48 48'%3E%3Ccircle cx='24' cy='24' r='24' fill='%23667eea'/%3E%3Ctext x='24' y='30' text-anchor='middle' fill='white' font-size='16' font-family='Arial'%3ESC%3C/text%3E%3C/svg%3E",
       content: "EmbeddedAI transformed how we approach IoT development. What used to take weeks now takes days. The AI suggestions are incredibly accurate.",
       rating: 5
     },
@@ -460,7 +460,7 @@ const TestimonialsSection = () => {
       name: "Marcus Rodriguez", 
       role: "Startup Founder",
       company: "IoT Solutions",
-      image: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop&crop=face",
+      image: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='48' height='48' viewBox='0 0 48 48'%3E%3Ccircle cx='24' cy='24' r='24' fill='%23764ba2'/%3E%3Ctext x='24' y='30' text-anchor='middle' fill='white' font-size='16' font-family='Arial'%3EMR%3C/text%3E%3C/svg%3E",
       content: "As a non-technical founder, this platform allowed me to prototype my IoT product idea without hiring a full development team. Game changer!",
       rating: 5
     },
@@ -468,7 +468,7 @@ const TestimonialsSection = () => {
       name: "Dr. Emily Watson",
       role: "Research Scientist", 
       company: "MIT Labs",
-      image: "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=150&h=150&fit=crop&crop=face",
+      image: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='48' height='48' viewBox='0 0 48 48'%3E%3Ccircle cx='24' cy='24' r='24' fill='%2310b981'/%3E%3Ctext x='24' y='30' text-anchor='middle' fill='white' font-size='16' font-family='Arial'%3EEW%3C/text%3E%3C/svg%3E",
       content: "The simulation accuracy is outstanding. We've validated dozens of research prototypes before building physical devices. Saves time and resources.",
       rating: 5
     },
@@ -476,7 +476,7 @@ const TestimonialsSection = () => {
       name: "James Park",
       role: "Electronics Teacher",
       company: "Tech Academy",
-      image: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&h=150&fit=crop&crop=face",
+      image: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='48' height='48' viewBox='0 0 48 48'%3E%3Ccircle cx='24' cy='24' r='24' fill='%23f59e0b'/%3E%3Ctext x='24' y='30' text-anchor='middle' fill='white' font-size='16' font-family='Arial'%3EJP%3C/text%3E%3C/svg%3E",
       content: "My students love this platform! It makes learning embedded systems fun and interactive. The AI guidance helps them understand complex concepts.",
       rating: 5
     },
@@ -484,7 +484,7 @@ const TestimonialsSection = () => {
       name: "Lisa Thompson",
       role: "Product Manager",
       company: "SmartHome Inc",
-      image: "https://images.unsplash.com/photo-1487412720507-e7ab37603c6f?w=150&h=150&fit=crop&crop=face",
+      image: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='48' height='48' viewBox='0 0 48 48'%3E%3Ccircle cx='24' cy='24' r='24' fill='%23ef4444'/%3E%3Ctext x='24' y='30' text-anchor='middle' fill='white' font-size='16' font-family='Arial'%3ELT%3C/text%3E%3C/svg%3E",
       content: "Reduced our time-to-market by 40%. The collaborative features make it easy for our distributed team to work together on hardware projects.",
       rating: 5
     },
@@ -492,7 +492,7 @@ const TestimonialsSection = () => {
       name: "Alex Kumar",
       role: "Indie Maker",
       company: "Solo Developer",
-      image: "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=150&h=150&fit=crop&crop=face",
+      image: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='48' height='48' viewBox='0 0 48 48'%3E%3Ccircle cx='24' cy='24' r='24' fill='%236366f1'/%3E%3Ctext x='24' y='30' text-anchor='middle' fill='white' font-size='16' font-family='Arial'%3EAK%3C/text%3E%3C/svg%3E",
       content: "Built and launched my smart garden monitoring system in just 2 weeks. The code generation feature is pure magic. Highly recommended!",
       rating: 5
     }
