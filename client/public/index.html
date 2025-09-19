@@ -9,7 +9,7 @@
 
     <!-- PWA Meta Tags -->
     <link rel="manifest" href="%PUBLIC_URL%/manifest.json" />
-    <link rel="apple-touch-icon" href="%PUBLIC_URL%/icons/icon-192x192.png" />
+    <link rel="apple-touch-icon" href="%PUBLIC_URL%/icons/icon-192x192.svg" />
 
     <!-- Preconnect to external domains for performance -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -20,18 +20,17 @@
     <meta property="og:url" content="https://embedded-platform.com/" />
     <meta property="og:title" content="AI-Embedded Systems Design Platform" />
     <meta property="og:description" content="Design, simulate, and deploy embedded systems with AI assistance" />
-    <meta property="og:image" content="%PUBLIC_URL%/icons/icon-512x512.png" />
+    <meta property="og:image" content="%PUBLIC_URL%/icons/icon-512x512.svg" />
 
     <!-- Twitter -->
     <meta property="twitter:card" content="summary_large_image" />
     <meta property="twitter:url" content="https://embedded-platform.com/" />
     <meta property="twitter:title" content="AI-Embedded Systems Design Platform" />
     <meta property="twitter:description" content="Design, simulate, and deploy embedded systems with AI assistance" />
-    <meta property="twitter:image" content="%PUBLIC_URL%/icons/icon-512x512.png" />
+    <meta property="twitter:image" content="%PUBLIC_URL%/icons/icon-512x512.svg" />
 
-    <!-- Security Headers -->
+    <!-- Security Headers (Note: X-Frame-Options set via HTTP headers in netlify.toml) -->
     <meta http-equiv="X-Content-Type-Options" content="nosniff" />
-    <meta http-equiv="X-Frame-Options" content="DENY" />
     <meta http-equiv="X-XSS-Protection" content="1; mode=block" />
     <meta http-equiv="Referrer-Policy" content="strict-origin-when-cross-origin" />
 
@@ -42,9 +41,9 @@
 
     <title>AI-Embedded Systems Design Platform</title>
 
-    <!-- Preload critical resources -->
-    <link rel="preload" href="%PUBLIC_URL%/static/css/main.css" as="style">
-    <link rel="preload" href="%PUBLIC_URL%/static/js/main.js" as="script">
+    <!-- Preload critical resources - paths will be resolved by React build -->
+    <!-- <link rel="preload" href="%PUBLIC_URL%/static/css/main.css" as="style"> -->
+    <!-- <link rel="preload" href="%PUBLIC_URL%/static/js/main.js" as="script"> -->
 
     <style>
       /* Critical CSS for loading screen */
@@ -116,7 +115,7 @@
     <!-- PWA Install Prompt -->
     <div id="pwa-install-prompt" style="display: none; position: fixed; bottom: 20px; left: 20px; right: 20px; background: white; border-radius: 12px; padding: 16px; box-shadow: 0 4px 20px rgba(0,0,0,0.15); z-index: 1000; border: 1px solid #e5e7eb;">
       <div style="display: flex; align-items: center; gap: 12px;">
-        <img src="%PUBLIC_URL%/icons/icon-192x192.png" alt="App Icon" style="width: 48px; height: 48px; border-radius: 8px;">
+        <img src="%PUBLIC_URL%/icons/icon-192x192.svg" alt="App Icon" style="width: 48px; height: 48px; border-radius: 8px;">
         <div style="flex: 1;">
           <h3 style="margin: 0; font-size: 16px; font-weight: 600; color: #1f2937;">Install Embedded Platform</h3>
           <p style="margin: 4px 0 0 0; font-size: 14px; color: #6b7280;">Work offline and get the full experience</p>

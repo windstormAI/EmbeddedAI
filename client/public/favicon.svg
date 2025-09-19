@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="16" height="16" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="grad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#667eea;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#764ba2;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  <rect width="16" height="16" rx="2.4" fill="url(#grad)"/>
+  <g transform="translate(4, 4)">
+    <!-- CPU/Circuit icon -->
+    <rect x="0" y="0" width="8" height="8" rx="0.8" fill="white" opacity="0.9"/>
+    <rect x="1.6" y="1.6" width="4.8" height="4.8" rx="0.32" fill="none" stroke="url(#grad)" stroke-width="2"/>
+    <!-- Circuit lines -->
+    <line x1="0" y1="2" x2="1.6" y2="2" stroke="white" stroke-width="2"/>
+    <line x1="0" y1="4" x2="1.6" y2="4" stroke="white" stroke-width="2"/>
+    <line x1="0" y1="6" x2="1.6" y2="6" stroke="white" stroke-width="2"/>
+    <line x1="6.4" y1="2" x2="8" y2="2" stroke="white" stroke-width="2"/>
+    <line x1="6.4" y1="4" x2="8" y2="4" stroke="white" stroke-width="2"/>
+    <line x1="6.4" y1="6" x2="8" y2="6" stroke="white" stroke-width="2"/>
+    <!-- Dots for components -->
+    <circle cx="2.4" cy="2.4" r="0.24" fill="url(#grad)"/>
+    <circle cx="5.6" cy="2.4" r="0.24" fill="url(#grad)"/>
+    <circle cx="2.4" cy="5.6" r="0.24" fill="url(#grad)"/>
+    <circle cx="5.6" cy="5.6" r="0.24" fill="url(#grad)"/>
+  </g>
+</svg>

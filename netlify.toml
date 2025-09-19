@@ -28,11 +28,12 @@
   to = "/.netlify/functions/auth/:splat"
   status = 200
 
-# SPA fallback
+# SPA fallback - only for non-file requests
 [[redirects]]
   from = "/*"
   to = "/index.html"
   status = 200
+  force = false
 
 # Security headers
 [[headers]]
@@ -52,7 +53,19 @@
     Access-Control-Allow-Headers = "Content-Type, Authorization"
     Access-Control-Allow-Methods = "GET, POST, PUT, DELETE, OPTIONS"
 
-# Static assets caching
+# Static assets caching and MIME types
+[[headers]]
+  for = "/static/css/*"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
+    Content-Type = "text/css"
+
+[[headers]]
+  for = "/static/js/*"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
+    Content-Type = "application/javascript"
+
 [[headers]]
   for = "/static/*"
   [headers.values]
