@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Offline - Embedded Platform</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #333;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .offline-container {
+            background: white;
+            border-radius: 16px;
+            padding: 40px;
+            text-align: center;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            max-width: 500px;
+            width: 100%;
+        }
+
+        .offline-icon {
+            width: 80px;
+            height: 80px;
+            margin: 0 auto 24px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 32px;
+        }
+
+        h1 {
+            font-size: 28px;
+            font-weight: 700;
+            margin-bottom: 16px;
+            color: #1a202c;
+        }
+
+        p {
+            font-size: 16px;
+            color: #718096;
+            margin-bottom: 32px;
+            line-height: 1.6;
+        }
+
+        .features {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin: 32px 0;
+            text-align: left;
+        }
+
+        .feature-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+        }
+
+        .feature-icon {
+            width: 24px;
+            height: 24px;
+            background: #e2e8f0;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #4a5568;
+            font-size: 14px;
+            flex-shrink: 0;
+        }
+
+        .feature-content h3 {
+            font-size: 14px;
+            font-weight: 600;
+            color: #2d3748;
+            margin-bottom: 4px;
+        }
+
+        .feature-content p {
+            font-size: 13px;
+            color: #718096;
+            line-height: 1.4;
+        }
+
+        .retry-button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            margin-top: 24px;
+        }
+
+        .retry-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(102, 126, 234, 0.3);
+        }
+
+        .status-indicator {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 16px;
+            background: #fef5e7;
+            border: 1px solid #f6e05e;
+            border-radius: 20px;
+            font-size: 14px;
+            color: #744210;
+            margin-top: 16px;
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            background: #f6e05e;
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        @media (max-width: 600px) {
+            .offline-container {
+                padding: 24px;
+                margin: 16px;
+            }
+
+            h1 {
+                font-size: 24px;
+            }
+
+            .features {
+                grid-template-columns: 1fr;
+                gap: 16px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="offline-container">
+        <div class="offline-icon">
+            📡
+        </div>
+
+        <h1>You're Offline</h1>
+
+        <p>
+            Don't worry! You can still work on your embedded projects.
+            Your changes will be synced when you're back online.
+        </p>
+
+        <div class="status-indicator">
+            <div class="status-dot"></div>
+            <span>Waiting for connection...</span>
+        </div>
+
+        <div class="features">
+            <div class="feature-item">
+                <div class="feature-icon">🎨</div>
+                <div class="feature-content">
+                    <h3>Circuit Design</h3>
+                    <p>Design circuits offline and sync when connected</p>
+                </div>
+            </div>
+
+            <div class="feature-item">
+                <div class="feature-icon">💻</div>
+                <div class="feature-content">
+                    <h3>Code Editor</h3>
+                    <p>Write and edit Arduino code without internet</p>
+                </div>
+            </div>
+
+            <div class="feature-item">
+                <div class="feature-icon">🤖</div>
+                <div class="feature-content">
+                    <h3>AI Assistant</h3>
+                    <p>Access cached AI suggestions and help</p>
+                </div>
+            </div>
+
+            <div class="feature-item">
+                <div class="feature-icon">🔄</div>
+                <div class="feature-content">
+                    <h3>Auto Sync</h3>
+                    <p>Changes automatically sync when online</p>
+                </div>
+            </div>
+        </div>
+
+        <button class="retry-button" onclick="window.location.reload()">
+            🔄 Try Again
+        </button>
+    </div>
+
+    <script>
+        // Check for online status
+        function updateOnlineStatus() {
+            const statusIndicator = document.querySelector('.status-indicator');
+            const statusDot = document.querySelector('.status-dot');
+
+            if (navigator.onLine) {
+                statusIndicator.innerHTML = `
+                    <div class="status-dot" style="background: #10b981;"></div>
+                    <span>Back online! Syncing...</span>
+                `;
+
+                // Auto-reload after a short delay to sync
+                setTimeout(() => {
+                    window.location.reload();
+                }, 2000);
+            } else {
+                statusIndicator.innerHTML = `
+                    <div class="status-dot"></div>
+                    <span>Waiting for connection...</span>
+                `;
+            }
+        }
+
+        // Listen for online/offline events
+        window.addEventListener('online', updateOnlineStatus);
+        window.addEventListener('offline', updateOnlineStatus);
+
+        // Check status periodically
+        setInterval(() => {
+            if (navigator.onLine) {
+                updateOnlineStatus();
+            }
+        }, 5000);
+
+        // Service worker communication
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.addEventListener('message', (event) => {
+                if (event.data && event.data.type === 'SYNC_COMPLETE') {
+                    updateOnlineStatus();
+                }
+            });
+        }
+    </script>
+</body>
+</html>

@@ -31,8 +31,7 @@
     "db:seed": "node server/scripts/seed.js",
     "db:migrate": "node server/scripts/migrate.js",
     "db:indexes": "node server/scripts/createIndexes.js",
-    "precommit": "npm run lint && npm run test",
-    "prepare": "husky install"
+    "precommit": "npm run lint && npm run test"
   },
   "repository": {
     "type": "git",
