@@ -8,6 +8,8 @@
     NODE_VERSION = "18"
     NPM_VERSION = "9"
     CI = "false"
+    ESLINT_NO_DEV_ERRORS = "true"
+    GENERATE_SOURCEMAP = "false"
 
 # Redirect rules for SPA
 [[redirects]]
