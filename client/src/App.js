@@ -88,6 +88,31 @@ function AppContent() {
     );
   }
 
+  // In demo mode, always show public routes
+  if (process.env.REACT_APP_DEMO_MODE === 'true') {
+    return (
+      <div className="min-h-screen bg-gray-50">
+        <Routes>
+          <Route path="/" element={<Homepage />} />
+          <Route path="/login" element={<Login />} />
+          <Route path="/register" element={<Register />} />
+          <Route path="*" element={<Navigate to="/" replace />} />
+        </Routes>
+
+        <Toaster
+          position="top-right"
+          toastOptions={{
+            duration: 4000,
+            style: {
+              background: '#363636',
+              color: '#fff',
+            },
+          }}
+        />
+      </div>
+    );
+  }
+
   // Authentication required routes
   if (user && !maxLoadingReached) {
     return (
