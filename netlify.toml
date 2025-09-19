@@ -1,0 +1,80 @@
+[build]
+  # Build settings
+  publish = "client/build"
+  command = "npm run build"
+
+  # Environment variables
+  [build.environment]
+    NODE_VERSION = "18"
+    NPM_VERSION = "9"
+    CI = "false"
+
+# Redirect rules for SPA
+[[redirects]]
+  from = "/api/*"
+  to = "/.netlify/functions/api/:splat"
+  status = 200
+
+[[redirects]]
+  from = "/socket.io/*"
+  to = "/.netlify/functions/socket/:splat"
+  status = 200
+
+[[redirects]]
+  from = "/auth/*"
+  to = "/.netlify/functions/auth/:splat"
+  status = 200
+
+# SPA fallback
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
+
+# Security headers
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Frame-Options = "DENY"
+    X-XSS-Protection = "1; mode=block"
+    X-Content-Type-Options = "nosniff"
+    Referrer-Policy = "strict-origin-when-cross-origin"
+    Content-Security-Policy = "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net https://unpkg.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https:; connect-src 'self' https://api.openai.com wss://*.netlify.app ws://localhost:3002;"
+
+# API headers
+[[headers]]
+  for = "/.netlify/functions/*"
+  [headers.values]
+    Access-Control-Allow-Origin = "*"
+    Access-Control-Allow-Headers = "Content-Type, Authorization"
+    Access-Control-Allow-Methods = "GET, POST, PUT, DELETE, OPTIONS"
+
+# Static assets caching
+[[headers]]
+  for = "/static/*"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
+
+# Images caching
+[[headers]]
+  for = "/images/*"
+  [headers.values]
+    Cache-Control = "public, max-age=86400"
+
+# Service worker
+[[headers]]
+  for = "/sw.js"
+  [headers.values]
+    Cache-Control = "no-cache"
+
+# WebSerial API support check
+[[redirects]]
+  from = "/webserial-support"
+  to = "/.netlify/functions/webserial-support"
+  status = 200
+
+# Health check
+[[redirects]]
+  from = "/health"
+  to = "/.netlify/functions/health"
+  status = 200

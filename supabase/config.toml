@@ -1,0 +1,55 @@
+# A string used to distinguish different Supabase projects on the same host. Defaults to the
+# working directory name when running `supabase init`.
+project_id = "ai-embedded-platform"
+
+[api]
+enabled = true
+port = 54321
+schemas = ["public", "graphql_public"]
+extra_search_path = ["public", "extensions"]
+max_rows = 1000
+
+[auth]
+enabled = true
+port = 54322
+site_url = "http://localhost:3000"
+additional_redirect_urls = ["https://localhost:3000"]
+jwt_expiry = 3600
+enable_signup = true
+enable_anonymous_sign_ins = false
+
+[auth.email]
+enable_signup = true
+double_confirm_changes = true
+enable_confirmations = true
+
+[auth.sms.test_otp]
+phone = "1234567890"
+otp = "123456"
+
+[db]
+port = 54323
+shadow_port = 54324
+major_version = 15
+
+[realtime]
+enabled = true
+port = 54325
+
+[studio]
+enabled = true
+port = 54326
+api_url = "http://localhost:54321"
+
+[storage]
+enabled = true
+port = 54327
+file_size_limit = "50MiB"
+
+[edge_functions]
+enabled = true
+port = 54328
+
+[analytics]
+enabled = true
+port = 54329

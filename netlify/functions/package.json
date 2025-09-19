@@ -1,0 +1,40 @@
+{
+  "name": "ai-embedded-platform-netlify-functions",
+  "version": "1.0.0",
+  "description": "Serverless functions for AI-Embedded Systems Design Platform on Netlify",
+  "main": "index.js",
+  "scripts": {
+    "build": "echo 'Netlify functions build complete'",
+    "test": "jest",
+    "lint": "eslint *.js handlers/*.js --fix"
+  },
+  "dependencies": {
+    "mongoose": "^7.5.0",
+    "jsonwebtoken": "^9.0.2",
+    "bcryptjs": "^2.4.3",
+    "openai": "^4.0.0",
+    "aws-sdk": "^2.1440.0",
+    "cors": "^2.8.5",
+    "express-validator": "^7.0.1",
+    "uuid": "^9.0.1",
+    "querystring": "^0.2.1"
+  },
+  "devDependencies": {
+    "jest": "^29.6.2",
+    "@types/jest": "^29.5.5",
+    "eslint": "^8.48.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "keywords": [
+    "netlify",
+    "serverless",
+    "functions",
+    "embedded-systems",
+    "ai",
+    "arduino"
+  ],
+  "author": "AI-Embedded Platform Team",
+  "license": "AGPL-3.0-or-later"
+}

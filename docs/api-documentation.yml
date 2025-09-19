@@ -1,0 +1,1357 @@
+openapi: 3.0.3
+info:
+  title: Embedded Systems Design Platform API
+  description: |
+    A comprehensive REST API for the AI-Embedded Systems Design Platform.
+    This platform enables users to design, simulate, and deploy embedded systems projects
+    with AI-powered assistance and real-time collaboration features.
+  version: 1.0.0
+  contact:
+    name: API Support
+    email: support@embedded-platform.com
+  license:
+    name: AGPL-3.0-or-later
+    url: https://www.gnu.org/licenses/agpl-3.0.html
+
+servers:
+  - url: http://localhost:3001/api
+    description: Development server
+  - url: https://api.embedded-platform.com
+    description: Production server
+
+security:
+  - bearerAuth: []
+
+paths:
+  /health:
+    get:
+      summary: Health check endpoint
+      description: Check if the API is running and get system information
+      tags:
+        - System
+      responses:
+        '200':
+          description: API is healthy
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: "OK"
+                  message:
+                    type: string
+                    example: "Embedded Platform API is running"
+                  timestamp:
+                    type: string
+                    format: date-time
+                  environment:
+                    type: string
+                    example: "development"
+
+  /auth/register:
+    post:
+      summary: Register a new user
+      description: Create a new user account with email, username, and password
+      tags:
+        - Authentication
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - username
+                - email
+                - password
+                - name
+              properties:
+                username:
+                  type: string
+                  minLength: 3
+                  maxLength: 30
+                  pattern: '^[a-zA-Z0-9_]+$'
+                  description: Unique username (letters, numbers, underscores only)
+                  example: "johndoe"
+                email:
+                  type: string
+                  format: email
+                  description: Valid email address
+                  example: "john.doe@example.com"
+                password:
+                  type: string
+                  minLength: 8
+                  description: Password with at least 8 characters, 1 uppercase, 1 lowercase, 1 number
+                  example: "SecurePass123"
+                name:
+                  type: string
+                  minLength: 2
+                  maxLength: 50
+                  description: Full display name
+                  example: "John Doe"
+      responses:
+        '201':
+          description: User registered successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    type: object
+                    properties:
+                      token:
+                        type: string
+                        description: JWT authentication token
+                      user:
+                        $ref: '#/components/schemas/User'
+        '400':
+          description: Validation error or user already exists
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /auth/login:
+    post:
+      summary: User login
+      description: Authenticate user with email/username and password
+      tags:
+        - Authentication
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - email
+                - password
+              properties:
+                email:
+                  type: string
+                  description: Email address or username
+                  example: "john.doe@example.com"
+                password:
+                  type: string
+                  description: User password
+                  example: "SecurePass123"
+      responses:
+        '200':
+          description: Login successful
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    type: object
+                    properties:
+                      token:
+                        type: string
+                        description: JWT authentication token
+                      user:
+                        $ref: '#/components/schemas/User'
+        '401':
+          description: Invalid credentials
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /auth/me:
+    get:
+      summary: Get current user profile
+      description: Retrieve the authenticated user's profile information
+      tags:
+        - Authentication
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: User profile retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    $ref: '#/components/schemas/UserProfile'
+        '401':
+          description: Not authenticated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+    put:
+      summary: Update user profile
+      description: Update the authenticated user's profile information
+      tags:
+        - Authentication
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                  minLength: 2
+                  maxLength: 50
+                  example: "John Doe Updated"
+                bio:
+                  type: string
+                  maxLength: 500
+                  example: "Embedded systems enthusiast"
+                website:
+                  type: string
+                  format: uri
+                  example: "https://johndoe.dev"
+                location:
+                  type: string
+                  maxLength: 100
+                  example: "San Francisco, CA"
+      responses:
+        '200':
+          description: Profile updated successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    $ref: '#/components/schemas/UserProfile'
+        '400':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+    delete:
+      summary: Delete user account
+      description: Deactivate the authenticated user's account
+      tags:
+        - Authentication
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Account deactivated successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: "Account deactivated successfully"
+        '401':
+          description: Not authenticated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /auth/changepassword:
+    put:
+      summary: Change user password
+      description: Change the authenticated user's password
+      tags:
+        - Authentication
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - currentPassword
+                - newPassword
+              properties:
+                currentPassword:
+                  type: string
+                  description: Current password
+                  example: "CurrentPass123"
+                newPassword:
+                  type: string
+                  minLength: 8
+                  description: New password (must meet complexity requirements)
+                  example: "NewSecurePass456"
+      responses:
+        '200':
+          description: Password changed successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: "Password updated successfully"
+        '400':
+          description: Validation error or incorrect current password
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /projects:
+    get:
+      summary: Get user projects
+      description: Retrieve all projects for the authenticated user with pagination
+      tags:
+        - Projects
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            default: 1
+          description: Page number for pagination
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 20
+          description: Number of projects per page
+      responses:
+        '200':
+          description: Projects retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    type: object
+                    properties:
+                      projects:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/ProjectSummary'
+                      total:
+                        type: integer
+                        example: 25
+                      page:
+                        type: integer
+                        example: 1
+                      pages:
+                        type: integer
+                        example: 2
+        '401':
+          description: Not authenticated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+    post:
+      summary: Create new project
+      description: Create a new embedded systems project
+      tags:
+        - Projects
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - name
+              properties:
+                name:
+                  type: string
+                  minLength: 1
+                  maxLength: 100
+                  example: "LED Blinking Circuit"
+                description:
+                  type: string
+                  maxLength: 500
+                  example: "A simple LED blinking circuit with Arduino Uno"
+                boardType:
+                  type: string
+                  enum: [arduino-uno, arduino-nano, arduino-mega, esp32, esp8266, raspberry-pi]
+                  default: arduino-uno
+                  example: "arduino-uno"
+                codeLanguage:
+                  type: string
+                  enum: [cpp, python, javascript]
+                  default: cpp
+                  example: "cpp"
+                tags:
+                  type: array
+                  items:
+                    type: string
+                    maxLength: 30
+                  example: ["arduino", "led", "basic"]
+                category:
+                  type: string
+                  enum: [basic, intermediate, advanced, iot, robotics, automation]
+                  default: basic
+                  example: "basic"
+                difficulty:
+                  type: string
+                  enum: [beginner, intermediate, advanced]
+                  default: beginner
+                  example: "beginner"
+                isPublic:
+                  type: boolean
+                  default: false
+                  example: false
+      responses:
+        '201':
+          description: Project created successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: "Project created successfully"
+                  data:
+                    type: object
+                    properties:
+                      project:
+                        $ref: '#/components/schemas/Project'
+        '400':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /projects/{id}:
+    get:
+      summary: Get project by ID
+      description: Retrieve a specific project by its ID
+      tags:
+        - Projects
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Project ID
+          example: "507f1f77bcf86cd799439011"
+      responses:
+        '200':
+          description: Project retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    type: object
+                    properties:
+                      project:
+                        $ref: '#/components/schemas/Project'
+        '404':
+          description: Project not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+    put:
+      summary: Update project
+      description: Update an existing project
+      tags:
+        - Projects
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Project ID
+          example: "507f1f77bcf86cd799439011"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                  minLength: 1
+                  maxLength: 100
+                  example: "Updated Project Name"
+                description:
+                  type: string
+                  maxLength: 500
+                  example: "Updated project description"
+                circuitData:
+                  $ref: '#/components/schemas/CircuitData'
+                code:
+                  type: string
+                  example: "// Updated Arduino code"
+                tags:
+                  type: array
+                  items:
+                    type: string
+                  example: ["updated", "arduino"]
+                isPublic:
+                  type: boolean
+                  example: true
+      responses:
+        '200':
+          description: Project updated successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: "Project updated successfully"
+                  data:
+                    type: object
+                    properties:
+                      project:
+                        $ref: '#/components/schemas/Project'
+        '404':
+          description: Project not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+    delete:
+      summary: Delete project
+      description: Delete a project by its ID
+      tags:
+        - Projects
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Project ID
+          example: "507f1f77bcf86cd799439011"
+      responses:
+        '200':
+          description: Project deleted successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: "Project deleted successfully"
+        '404':
+          description: Project not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /projects/{id}/duplicate:
+    post:
+      summary: Duplicate project
+      description: Create a copy of an existing project
+      tags:
+        - Projects
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Project ID to duplicate
+          example: "507f1f77bcf86cd799439011"
+      responses:
+        '201':
+          description: Project duplicated successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: "Project duplicated successfully"
+                  data:
+                    type: object
+                    properties:
+                      project:
+                        $ref: '#/components/schemas/Project'
+        '404':
+          description: Project not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /projects/{id}/share:
+    post:
+      summary: Share project publicly
+      description: Make a project publicly accessible
+      tags:
+        - Projects
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Project ID to share
+          example: "507f1f77bcf86cd799439011"
+      responses:
+        '200':
+          description: Project shared successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: "Project shared successfully"
+                  data:
+                    type: object
+                    properties:
+                      shareUrl:
+                        type: string
+                        example: "https://platform.example.com/shared/507f1f77bcf86cd799439011"
+                      project:
+                        $ref: '#/components/schemas/Project'
+        '404':
+          description: Project not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /projects/public/{id}:
+    get:
+      summary: Get public project
+      description: Retrieve a publicly shared project
+      tags:
+        - Projects
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Public project ID
+          example: "507f1f77bcf86cd799439011"
+      responses:
+        '200':
+          description: Public project retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    type: object
+                    properties:
+                      project:
+                        $ref: '#/components/schemas/PublicProject'
+        '404':
+          description: Public project not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /components:
+    get:
+      summary: Get available components
+      description: Retrieve list of available electronic components
+      tags:
+        - Components
+      parameters:
+        - name: category
+          in: query
+          schema:
+            type: string
+            enum: [board, input, output, sensor, actuator]
+          description: Filter by component category
+        - name: type
+          in: query
+          schema:
+            type: string
+          description: Filter by component type
+      responses:
+        '200':
+          description: Components retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  count:
+                    type: integer
+                    example: 25
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Component'
+
+  /simulation/start:
+    post:
+      summary: Start circuit simulation
+      description: Initialize and start a circuit simulation session
+      tags:
+        - Simulation
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - circuitData
+              properties:
+                circuitData:
+                  $ref: '#/components/schemas/CircuitData'
+      responses:
+        '200':
+          description: Simulation started successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    type: object
+                    properties:
+                      simulationId:
+                        type: string
+                        example: "sim_507f1f77bcf86cd799439011"
+                      simulation:
+                        $ref: '#/components/schemas/SimulationState'
+
+  /simulation/{simulationId}/step:
+    post:
+      summary: Step simulation
+      description: Advance the simulation by one time step
+      tags:
+        - Simulation
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: simulationId
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Simulation ID
+          example: "sim_507f1f77bcf86cd799439011"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                timeStep:
+                  type: number
+                  default: 1000
+                  example: 1000
+      responses:
+        '200':
+          description: Simulation stepped successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    type: object
+                    properties:
+                      simulation:
+                        $ref: '#/components/schemas/SimulationState'
+
+  /simulation/{simulationId}/stop:
+    post:
+      summary: Stop simulation
+      description: Stop and clean up a simulation session
+      tags:
+        - Simulation
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: simulationId
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Simulation ID
+          example: "sim_507f1f77bcf86cd799439011"
+      responses:
+        '200':
+          description: Simulation stopped successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: "Simulation stopped successfully"
+
+  /ai/generate-code:
+    post:
+      summary: Generate code with AI
+      description: Use AI to generate Arduino/C++ code from natural language description
+      tags:
+        - AI
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - prompt
+              properties:
+                prompt:
+                  type: string
+                  description: Natural language description of desired functionality
+                  example: "Create a program that blinks an LED connected to pin 13 every second"
+                boardType:
+                  type: string
+                  enum: [arduino-uno, arduino-nano, arduino-mega, esp32, esp8266, raspberry-pi]
+                  default: arduino-uno
+                  example: "arduino-uno"
+                components:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      id:
+                        type: string
+                      type:
+                        type: string
+                      name:
+                        type: string
+                  description: List of components in the circuit
+                existingCode:
+                  type: string
+                  description: Existing code to build upon
+      responses:
+        '200':
+          description: Code generated successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    type: object
+                    properties:
+                      code:
+                        type: string
+                        description: Generated Arduino/C++ code
+                      explanation:
+                        type: string
+                        description: Explanation of the generated code
+                      suggestions:
+                        type: array
+                        items:
+                          type: string
+                        description: Additional suggestions for improvement
+                      tokensUsed:
+                        type: integer
+                        description: Number of AI tokens consumed
+                        example: 150
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  schemas:
+    User:
+      type: object
+      properties:
+        id:
+          type: string
+          example: "507f1f77bcf86cd799439011"
+        username:
+          type: string
+          example: "johndoe"
+        email:
+          type: string
+          format: email
+          example: "john.doe@example.com"
+        name:
+          type: string
+          example: "John Doe"
+        role:
+          type: string
+          enum: [user, admin]
+          example: "user"
+        avatar:
+          type: string
+          nullable: true
+          example: "https://example.com/avatar.jpg"
+        createdAt:
+          type: string
+          format: date-time
+          example: "2023-01-01T00:00:00.000Z"
+
+    UserProfile:
+      allOf:
+        - $ref: '#/components/schemas/User'
+        - type: object
+          properties:
+            bio:
+              type: string
+              maxLength: 500
+              example: "Embedded systems enthusiast"
+            website:
+              type: string
+              format: uri
+              example: "https://johndoe.dev"
+            location:
+              type: string
+              example: "San Francisco, CA"
+            isActive:
+              type: boolean
+              example: true
+            emailVerified:
+              type: boolean
+              example: true
+            lastLogin:
+              type: string
+              format: date-time
+              example: "2023-12-01T10:30:00.000Z"
+            stats:
+              type: object
+              properties:
+                projectsCreated:
+                  type: integer
+                  example: 15
+                projectsCompleted:
+                  type: integer
+                  example: 12
+                totalLogins:
+                  type: integer
+                  example: 45
+                lastActivity:
+                  type: string
+                  format: date-time
+                  example: "2023-12-01T10:30:00.000Z"
+
+    ProjectSummary:
+      type: object
+      properties:
+        id:
+          type: string
+          example: "507f1f77bcf86cd799439011"
+        name:
+          type: string
+          example: "LED Blinking Circuit"
+        description:
+          type: string
+          example: "A simple LED blinking circuit with Arduino Uno"
+        createdAt:
+          type: string
+          format: date-time
+          example: "2023-01-01T00:00:00.000Z"
+        updatedAt:
+          type: string
+          format: date-time
+          example: "2023-12-01T10:30:00.000Z"
+        version:
+          type: integer
+          example: 3
+        tags:
+          type: array
+          items:
+            type: string
+          example: ["arduino", "led", "basic"]
+        isPublic:
+          type: boolean
+          example: false
+        status:
+          type: string
+          enum: [draft, in-progress, completed, archived]
+          example: "in-progress"
+        category:
+          type: string
+          enum: [basic, intermediate, advanced, iot, robotics, automation]
+          example: "basic"
+        difficulty:
+          type: string
+          enum: [beginner, intermediate, advanced]
+          example: "beginner"
+
+    Project:
+      allOf:
+        - $ref: '#/components/schemas/ProjectSummary'
+        - type: object
+          properties:
+            boardType:
+              type: string
+              enum: [arduino-uno, arduino-nano, arduino-mega, esp32, esp8266, raspberry-pi]
+              example: "arduino-uno"
+            codeLanguage:
+              type: string
+              enum: [cpp, python, javascript]
+              example: "cpp"
+            code:
+              type: string
+              example: "// Arduino code here"
+            circuitData:
+              $ref: '#/components/schemas/CircuitData'
+            collaborators:
+              type: array
+              items:
+                type: object
+                properties:
+                  user:
+                    type: string
+                    example: "507f1f77bcf86cd799439011"
+                  role:
+                    type: string
+                    enum: [viewer, editor, admin]
+                    example: "editor"
+                  addedAt:
+                    type: string
+                    format: date-time
+                    example: "2023-01-01T00:00:00.000Z"
+
+    PublicProject:
+      type: object
+      properties:
+        id:
+          type: string
+          example: "507f1f77bcf86cd799439011"
+        name:
+          type: string
+          example: "LED Blinking Circuit"
+        description:
+          type: string
+          example: "A simple LED blinking circuit with Arduino Uno"
+        circuitData:
+          $ref: '#/components/schemas/CircuitData'
+        code:
+          type: string
+          example: "// Arduino code here"
+        tags:
+          type: array
+          items:
+            type: string
+          example: ["arduino", "led", "basic"]
+        createdAt:
+          type: string
+          format: date-time
+          example: "2023-01-01T00:00:00.000Z"
+
+    CircuitData:
+      type: object
+      properties:
+        components:
+          type: array
+          items:
+            type: object
+            properties:
+              id:
+                type: string
+                example: "led1"
+              type:
+                type: string
+                example: "led"
+              name:
+                type: string
+                example: "LED"
+              x:
+                type: number
+                example: 100
+              y:
+                type: number
+                example: 100
+              rotation:
+                type: number
+                example: 0
+              properties:
+                type: object
+                additionalProperties: true
+              connections:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    pin:
+                      type: string
+                      example: "positive"
+                    connectedTo:
+                      type: object
+                      properties:
+                        componentId:
+                          type: string
+                          example: "arduino1"
+                        pin:
+                          type: string
+                          example: "D13"
+        connections:
+          type: array
+          items:
+            type: object
+            properties:
+              id:
+                type: string
+                example: "conn1"
+              from:
+                type: object
+                properties:
+                  componentId:
+                    type: string
+                    example: "led1"
+                  pin:
+                    type: string
+                    example: "positive"
+              to:
+                type: object
+                properties:
+                  componentId:
+                    type: string
+                    example: "arduino1"
+                  pin:
+                    type: string
+                    example: "D13"
+              type:
+                type: string
+                enum: [wire, bus]
+                example: "wire"
+              color:
+                type: string
+                example: "#000000"
+        metadata:
+          type: object
+          properties:
+            gridSize:
+              type: number
+              example: 20
+            snapToGrid:
+              type: boolean
+              example: true
+            showGrid:
+              type: boolean
+              example: true
+            backgroundColor:
+              type: string
+              example: "#ffffff"
+
+    Component:
+      type: object
+      properties:
+        id:
+          type: string
+          example: "arduino-uno"
+        name:
+          type: string
+          example: "Arduino Uno"
+        type:
+          type: string
+          example: "arduino-uno"
+        category:
+          type: string
+          enum: [board, input, output, sensor, actuator]
+          example: "board"
+        description:
+          type: string
+          example: "ATmega328P microcontroller board"
+        pins:
+          type: integer
+          example: 14
+        properties:
+          type: object
+          additionalProperties: true
+        usageCount:
+          type: integer
+          example: 1250
+        isBuiltIn:
+          type: boolean
+          example: true
+
+    SimulationState:
+      type: object
+      properties:
+        id:
+          type: string
+          example: "sim_507f1f77bcf86cd799439011"
+        currentTime:
+          type: number
+          example: 1500
+        sensorValues:
+          type: object
+          additionalProperties:
+            type: object
+            properties:
+              value:
+                type: number
+                example: 25
+              unit:
+                type: string
+                example: "°C"
+              min:
+                type: number
+                example: 0
+              max:
+                type: number
+                example: 100
+        outputValues:
+          type: object
+          additionalProperties:
+            type: object
+            properties:
+              type:
+                type: string
+                example: "led"
+              brightness:
+                type: number
+                example: 255
+              color:
+                type: string
+                example: "#00ff00"
+              active:
+                type: boolean
+                example: true
+        warnings:
+          type: array
+          items:
+            type: object
+            properties:
+              message:
+                type: string
+                example: "High current detected on pin D13"
+              severity:
+                type: string
+                enum: [low, medium, high]
+                example: "medium"
+        errors:
+          type: array
+          items:
+            type: object
+            properties:
+              message:
+                type: string
+                example: "Short circuit detected"
+              componentId:
+                type: string
+                example: "led1"
+
+    Error:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: false
+        error:
+          type: string
+          example: "Validation failed"
+        details:
+          type: array
+          items:
+            type: object
+            properties:
+              field:
+                type: string
+                example: "email"
+              message:
+                type: string
+                example: "Email is required"
+              value:
+                type: string
+                example: "invalid-email"

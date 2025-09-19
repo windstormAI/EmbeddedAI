@@ -1,0 +1,272 @@
+/**
+ * Cache Service
+ * Redis-based caching for improved performance
+ */
+
+const redis = require('redis');
+const logger = require('../utils/logger');
+
+class CacheService {
+  constructor() {
+    this.client = null;
+    this.isConnected = false;
+    this.defaultTTL = 300; // 5 minutes default TTL
+
+    this.init();
+  }
+
+  async init() {
+    try {
+      // Create Redis client
+      this.client = redis.createClient({
+        url: process.env.REDIS_URL || 'redis://localhost:6379',
+        socket: {
+          connectTimeout: 60000,
+          lazyConnect: true
+        }
+      });
+
+      // Handle connection events
+      this.client.on('connect', () => {
+        this.isConnected = true;
+        logger.info('Redis cache connected successfully');
+      });
+
+      this.client.on('error', (error) => {
+        this.isConnected = false;
+        logger.error('Redis cache connection error', { error: error.message });
+      });
+
+      this.client.on('ready', () => {
+        logger.info('Redis cache is ready');
+      });
+
+      this.client.on('end', () => {
+        this.isConnected = false;
+        logger.warn('Redis cache connection ended');
+      });
+
+      // Connect to Redis
+      await this.client.connect();
+
+    } catch (error) {
+      logger.error('Failed to initialize Redis cache', { error: error.message });
+      // Continue without cache if Redis is not available
+      this.isConnected = false;
+    }
+  }
+
+  /**
+   * Get cached value
+   */
+  async get(key) {
+    try {
+      if (!this.isConnected || !this.client) {
+        return null;
+      }
+
+      const value = await this.client.get(key);
+      if (value) {
+        logger.debug('Cache hit', { key });
+        return JSON.parse(value);
+      }
+
+      logger.debug('Cache miss', { key });
+      return null;
+    } catch (error) {
+      logger.error('Cache get error', { key, error: error.message });
+      return null;
+    }
+  }
+
+  /**
+   * Set cached value with TTL
+   */
+  async set(key, value, ttl = this.defaultTTL) {
+    try {
+      if (!this.isConnected || !this.client) {
+        return false;
+      }
+
+      await this.client.setEx(key, ttl, JSON.stringify(value));
+      logger.debug('Cache set', { key, ttl });
+      return true;
+    } catch (error) {
+      logger.error('Cache set error', { key, error: error.message });
+      return false;
+    }
+  }
+
+  /**
+   * Delete cached value
+   */
+  async del(key) {
+    try {
+      if (!this.isConnected || !this.client) {
+        return false;
+      }
+
+      await this.client.del(key);
+      logger.debug('Cache delete', { key });
+      return true;
+    } catch (error) {
+      logger.error('Cache delete error', { key, error: error.message });
+      return false;
+    }
+  }
+
+  /**
+   * Delete multiple cached values by pattern
+   */
+  async delPattern(pattern) {
+    try {
+      if (!this.isConnected || !this.client) {
+        return false;
+      }
+
+      const keys = await this.client.keys(pattern);
+      if (keys.length > 0) {
+        await this.client.del(keys);
+        logger.debug('Cache delete pattern', { pattern, deletedCount: keys.length });
+      }
+      return true;
+    } catch (error) {
+      logger.error('Cache delete pattern error', { pattern, error: error.message });
+      return false;
+    }
+  }
+
+  /**
+   * Set multiple values
+   */
+  async mset(keyValuePairs, ttl = this.defaultTTL) {
+    try {
+      if (!this.isConnected || !this.client) {
+        return false;
+      }
+
+      const pipeline = this.client.multi();
+      keyValuePairs.forEach(([key, value]) => {
+        pipeline.setEx(key, ttl, JSON.stringify(value));
+      });
+
+      await pipeline.exec();
+      logger.debug('Cache mset', { count: keyValuePairs.length, ttl });
+      return true;
+    } catch (error) {
+      logger.error('Cache mset error', { error: error.message });
+      return false;
+    }
+  }
+
+  /**
+   * Get multiple values
+   */
+  async mget(keys) {
+    try {
+      if (!this.isConnected || !this.client) {
+        return keys.map(() => null);
+      }
+
+      const values = await this.client.mget(keys);
+      const parsedValues = values.map(value =>
+        value ? JSON.parse(value) : null
+      );
+
+      logger.debug('Cache mget', { requested: keys.length, found: parsedValues.filter(v => v !== null).length });
+      return parsedValues;
+    } catch (error) {
+      logger.error('Cache mget error', { error: error.message });
+      return keys.map(() => null);
+    }
+  }
+
+  /**
+   * Check if cache is available
+   */
+  isAvailable() {
+    return this.isConnected && this.client;
+  }
+
+  /**
+   * Get cache statistics
+   */
+  async getStats() {
+    try {
+      if (!this.isConnected || !this.client) {
+        return { available: false };
+      }
+
+      const info = await this.client.info();
+      const dbSize = await this.client.dbSize();
+
+      return {
+        available: true,
+        dbSize,
+        info: info.split('\n').reduce((acc, line) => {
+          const [key, value] = line.split(':');
+          if (key && value) {
+            acc[key] = value.trim();
+          }
+          return acc;
+        }, {})
+      };
+    } catch (error) {
+      logger.error('Cache stats error', { error: error.message });
+      return { available: false, error: error.message };
+    }
+  }
+
+  /**
+   * Clear all cache
+   */
+  async clear() {
+    try {
+      if (!this.isConnected || !this.client) {
+        return false;
+      }
+
+      await this.client.flushAll();
+      logger.info('Cache cleared');
+      return true;
+    } catch (error) {
+      logger.error('Cache clear error', { error: error.message });
+      return false;
+    }
+  }
+
+  /**
+   * Graceful shutdown
+   */
+  async close() {
+    try {
+      if (this.client && this.isConnected) {
+        await this.client.quit();
+        logger.info('Redis cache connection closed');
+      }
+    } catch (error) {
+      logger.error('Error closing Redis cache connection', { error: error.message });
+    }
+  }
+
+  // Cache key generators
+  static generateKey(...parts) {
+    return parts.filter(part => part != null).join(':');
+  }
+
+  // Common cache keys
+  static keys = {
+    user: (userId) => `user:${userId}`,
+    userProjects: (userId) => `user:${userId}:projects`,
+    project: (projectId) => `project:${projectId}`,
+    projectComponents: (projectId) => `project:${projectId}:components`,
+    userStats: (userId) => `user:${userId}:stats`,
+    globalStats: () => 'global:stats',
+    aiResponse: (query) => `ai:response:${Buffer.from(query).toString('base64').substring(0, 32)}`,
+    simulation: (projectId) => `simulation:${projectId}`,
+    billing: (userId) => `billing:${userId}`,
+    subscription: (subscriptionId) => `subscription:${subscriptionId}`
+  };
+}
+
+module.exports = new CacheService();

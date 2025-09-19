@@ -1,0 +1,34 @@
+# Test Dockerfile for CI/CD
+FROM node:18-alpine
+
+# Install system dependencies for testing
+RUN apk add --no-cache \
+    git \
+    bash \
+    curl \
+    && rm -rf /var/cache/apk/*
+
+# Create app directory
+WORKDIR /app
+
+# Copy package files
+COPY package*.json ./
+
+# Install all dependencies (including dev dependencies for testing)
+RUN npm ci
+
+# Copy client package files and install dependencies
+COPY client/package*.json ./client/
+RUN cd client && npm ci
+
+# Copy source code
+COPY . .
+
+# Create necessary directories
+RUN mkdir -p logs uploads
+
+# Set permissions
+RUN chmod +x /app/server/tests/setup.js
+
+# Default command
+CMD ["npm", "run", "test:ci"]

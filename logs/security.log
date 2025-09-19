@@ -1,0 +1,4 @@
+{"environment":"development","error":"connect ECONNREFUSED ::1:6379","level":"error","message":"Redis cache connection error","service":"embedded-platform","timestamp":"2025-09-16 08:40:15"}
+{"environment":"development","error":"connect ECONNREFUSED ::1:6379","level":"error","message":"Redis cache connection error","service":"embedded-platform","timestamp":"2025-09-16 09:27:19"}
+{"environment":"development","error":"connect ECONNREFUSED ::1:6379","level":"error","message":"Redis cache connection error","service":"embedded-platform","timestamp":"2025-09-16 20:56:05"}
+{"environment":"development","error":"connect ECONNREFUSED ::1:6379","level":"error","message":"Redis cache connection error","service":"embedded-platform","timestamp":"2025-09-16 20:57:05"}

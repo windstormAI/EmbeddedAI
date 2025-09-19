@@ -1,0 +1,77 @@
+{
+  "name": "ai-embedded-platform-client",
+  "version": "1.0.0",
+  "description": "Frontend React application for AI-Embedded Systems Design Platform",
+  "private": true,
+  "dependencies": {
+    "@monaco-editor/react": "^4.6.0",
+    "@react-three/drei": "^9.88.13",
+    "@react-three/fiber": "^8.15.11",
+    "@reduxjs/toolkit": "^1.9.7",
+    "@tensorflow-models/mobilenet": "^2.1.1",
+    "@tensorflow/tfjs": "^4.15.0",
+    "axios": "^1.5.1",
+    "d3": "^7.8.5",
+    "johnny-five": "^2.1.0",
+    "lucide-react": "^0.544.0",
+    "react": "^18.2.0",
+    "react-beautiful-dnd": "^13.1.1",
+    "react-colorful": "^5.6.1",
+    "react-dom": "^18.2.0",
+    "react-flow-renderer": "^10.3.17",
+    "react-hot-toast": "^2.4.1",
+    "react-router-dom": "^6.16.0",
+    "react-scripts": "5.0.1",
+    "socket.io-client": "^4.7.2",
+    "tailwindcss": "^3.3.3",
+    "three": "^0.157.0",
+    "web-vitals": "^2.1.4",
+    "yjs": "^13.6.10",
+    "zustand": "^4.4.3"
+  },
+  "scripts": {
+    "start": "react-scripts start",
+    "build": "react-scripts build",
+    "test": "react-scripts test",
+    "eject": "react-scripts eject",
+    "lint": "eslint src --ext .js,.jsx,.ts,.tsx",
+    "lint:fix": "eslint src --ext .js,.jsx,.ts,.tsx --fix",
+    "type-check": "tsc --noEmit"
+  },
+  "eslintConfig": {
+    "extends": [
+      "react-app",
+      "react-app/jest"
+    ]
+  },
+  "browserslist": {
+    "production": [
+      ">0.2%",
+      "not dead",
+      "not op_mini all"
+    ],
+    "development": [
+      "last 1 chrome version",
+      "last 1 firefox version",
+      "last 1 safari version"
+    ]
+  },
+  "devDependencies": {
+    "@testing-library/jest-dom": "^5.17.0",
+    "@testing-library/react": "^13.4.0",
+    "@testing-library/user-event": "^13.5.0",
+    "@types/jest": "^27.5.2",
+    "@types/node": "^16.18.58",
+    "@types/react": "^18.2.33",
+    "@types/react-dom": "^18.2.14",
+    "@types/three": "^0.157.0",
+    "autoprefixer": "^10.4.16",
+    "eslint": "^8.52.0",
+    "eslint-plugin-react": "^7.33.2",
+    "eslint-plugin-react-hooks": "^4.6.0",
+    "postcss": "^8.4.31",
+    "tailwindcss": "^3.3.3",
+    "typescript": "^4.9.5"
+  },
+  "proxy": "http://localhost:3004"
+}

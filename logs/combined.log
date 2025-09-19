@@ -1,0 +1,4 @@
+2025-09-16 08:40:15 [ERROR]: Redis cache connection error | {"service":"embedded-platform","environment":"development","error":"connect ECONNREFUSED ::1:6379"}
+2025-09-16 09:27:19 [ERROR]: Redis cache connection error | {"service":"embedded-platform","environment":"development","error":"connect ECONNREFUSED ::1:6379"}
+2025-09-16 20:56:05 [ERROR]: Redis cache connection error | {"service":"embedded-platform","environment":"development","error":"connect ECONNREFUSED ::1:6379"}
+2025-09-16 20:57:05 [ERROR]: Redis cache connection error | {"service":"embedded-platform","environment":"development","error":"connect ECONNREFUSED ::1:6379"}

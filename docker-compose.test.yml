@@ -1,0 +1,70 @@
+version: '3.8'
+
+services:
+  # Application under test
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "3001:3001"
+    environment:
+      - NODE_ENV=test
+      - PORT=3001
+      - CLIENT_URL=http://localhost:3000
+      - MONGODB_URI=mongodb://mongodb:27017/embedded_test
+      - REDIS_URL=redis://redis:6379
+      - JWT_SECRET=test-jwt-secret-key-for-testing-only
+      - OPENAI_API_KEY=test-openai-key
+      - LOG_LEVEL=error
+    depends_on:
+      - mongodb
+      - redis
+    volumes:
+      - ./logs:/app/logs
+    command: ["npm", "run", "dev:server"]
+
+  # Test database
+  mongodb:
+    image: mongo:6.0
+    ports:
+      - "27017:27017"
+    environment:
+      - MONGO_INITDB_DATABASE=embedded_test
+    volumes:
+      - mongodb_test_data:/data/db
+      - ./server/tests/fixtures:/docker-entrypoint-initdb.d
+    command: --bind_ip_all --logpath /dev/null
+
+  # Test Redis
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    command: redis-server --appendonly yes --loglevel warning
+    volumes:
+      - redis_test_data:/data
+
+  # Test runner
+  test-runner:
+    build:
+      context: .
+      dockerfile: Dockerfile.test
+    environment:
+      - NODE_ENV=test
+      - MONGODB_URI=mongodb://mongodb:27017/embedded_test
+      - REDIS_URL=redis://redis:6379
+      - JWT_SECRET=test-jwt-secret-key-for-testing-only
+      - OPENAI_API_KEY=test-openai-key
+    depends_on:
+      - mongodb
+      - redis
+      - app
+    volumes:
+      - .:/app
+      - /app/node_modules
+    command: ["npm", "run", "test:ci"]
+
+volumes:
+  mongodb_test_data:
+  redis_test_data:

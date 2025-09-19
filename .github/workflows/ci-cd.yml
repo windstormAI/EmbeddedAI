@@ -1,0 +1,395 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+  workflow_dispatch:
+
+env:
+  NODE_VERSION: '18'
+  MONGODB_VERSION: '6.0'
+  REDIS_VERSION: '7.0'
+
+jobs:
+  # 🔍 Code Quality & Security
+  quality-check:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: |
+          cd server && npm ci
+          cd ../client && npm ci
+
+      - name: Run ESLint
+        run: |
+          cd server && npm run lint
+          cd ../client && npm run lint
+
+      - name: Run Prettier check
+        run: |
+          cd server && npx prettier --check "**/*.{js,jsx,json,md}"
+          cd ../client && npx prettier --check "**/*.{js,jsx,json,md}"
+
+      - name: Security audit
+        run: |
+          cd server && npm audit --audit-level=moderate
+          cd ../client && npm audit --audit-level=moderate
+
+      - name: Check for secrets
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  # 🧪 Unit & Integration Tests
+  test:
+    runs-on: ubuntu-latest
+    services:
+      mongodb:
+        image: mongo:${{ env.MONGODB_VERSION }}
+        ports:
+          - 27017:27017
+      redis:
+        image: redis:${{ env.REDIS_VERSION }}
+        ports:
+          - 6379:6379
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: |
+          cd server && npm ci
+          cd ../client && npm ci
+
+      - name: Setup environment
+        run: |
+          cd server
+          cp .env.example .env.test
+          echo "NODE_ENV=test" >> .env.test
+          echo "MONGODB_URI=mongodb://localhost:27017/embedded_test" >> .env.test
+          echo "REDIS_URL=redis://localhost:6379" >> .env.test
+          echo "JWT_SECRET=test_jwt_secret_key_for_ci_cd" >> .env.test
+
+      - name: Run server tests
+        run: cd server && npm run test:ci
+        env:
+          NODE_ENV: test
+
+      - name: Run client tests
+        run: cd client && npm run test:ci
+
+      - name: Generate coverage report
+        run: |
+          cd server && npm run test:coverage
+          cd ../client && npm run test:coverage
+
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v3
+        with:
+          directory: ./coverage
+          flags: unittests
+          name: codecov-umbrella
+          fail_ci_if_error: false
+
+  # 🐳 Build Docker Images
+  build:
+    needs: [quality-check, test]
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main' || github.event_name == 'workflow_dispatch'
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      - name: Extract metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: embedded-platform
+          tags: |
+            type=ref,event=branch
+            type=ref,event=pr
+            type=sha,prefix={{branch}}-
+            type=raw,value=latest,enable={{is_default_branch}}
+
+      - name: Build and push server image
+        uses: docker/build-push-action@v5
+        with:
+          context: ./server
+          file: ./server/Dockerfile
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}-server
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Build and push client image
+        uses: docker/build-push-action@v5
+        with:
+          context: ./client
+          file: ./client/Dockerfile
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}-client
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Build and push nginx image
+        uses: docker/build-push-action@v5
+        with:
+          context: ./docker/nginx
+          file: ./docker/nginx/Dockerfile
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}-nginx
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+  # 🚀 Deploy to Staging
+  deploy-staging:
+    needs: build
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/develop' && github.event_name == 'push'
+    environment: staging
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-east-1
+
+      - name: Deploy to ECS
+        run: |
+          aws ecs update-service \
+            --cluster embedded-staging \
+            --service embedded-api-staging \
+            --force-new-deployment \
+            --region us-east-1
+
+      - name: Wait for deployment
+        run: |
+          aws ecs wait services-stable \
+            --cluster embedded-staging \
+            --services embedded-api-staging \
+            --region us-east-1
+
+      - name: Run health check
+        run: |
+          sleep 30
+          curl -f https://api-staging.embedded-platform.com/health || exit 1
+
+  # 🚀 Deploy to Production
+  deploy-production:
+    needs: build
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    environment: production
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-east-1
+
+      - name: Deploy to ECS
+        run: |
+          aws ecs update-service \
+            --cluster embedded-production \
+            --service embedded-api-production \
+            --force-new-deployment \
+            --region us-east-1
+
+      - name: Wait for deployment
+        run: |
+          aws ecs wait services-stable \
+            --cluster embedded-production \
+            --services embedded-api-production \
+            --region us-east-1
+
+      - name: Run health check
+        run: |
+          sleep 60
+          curl -f https://api.embedded-platform.com/health || exit 1
+
+      - name: Run smoke tests
+        run: |
+          npm install -g artillery
+          artillery run smoke-tests.yml --environment production
+
+  # 📊 Performance Testing
+  performance-test:
+    needs: deploy-staging
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/develop' && github.event_name == 'push'
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Install Artillery
+        run: npm install -g artillery
+
+      - name: Run performance tests
+        run: artillery run performance-tests.yml --environment staging
+
+      - name: Generate performance report
+        uses: dorny/test-reporter@v1
+        if: success() || failure()
+        with:
+          name: Performance Tests
+          path: 'artillery-report.json'
+          reporter: java-junit
+
+  # 🔒 Security Testing
+  security-test:
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main' || github.event_name == 'workflow_dispatch'
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Run Trivy vulnerability scanner
+        uses: aquasecurity/trivy-action@master
+        with:
+          scan-type: 'fs'
+          scan-ref: '.'
+          format: 'sarif'
+          output: 'trivy-results.sarif'
+
+      - name: Upload Trivy scan results to GitHub Security tab
+        uses: github/codeql-action/upload-sarif@v2
+        if: always()
+        with:
+          sarif_file: 'trivy-results.sarif'
+
+      - name: Run OWASP ZAP baseline scan
+        uses: zaproxy/action-baseline@v0.8.0
+        with:
+          target: 'https://api-staging.embedded-platform.com'
+          rules_file_name: '.zap/rules.tsv'
+          cmd_options: '-a'
+
+  # 📱 Mobile Build (Future)
+  # build-mobile:
+  #   needs: [quality-check, test]
+  #   runs-on: ubuntu-latest
+  #   if: github.ref == 'refs/heads/main'
+  #
+  #   steps:
+  #   - name: Checkout code
+  #     uses: actions/checkout@v4
+  #
+  #   - name: Setup Flutter
+  #     uses: subosito/flutter-action@v2
+  #     with:
+  #       flutter-version: '3.10.0'
+  #
+  #   - name: Build Android APK
+  #     run: |
+  #       cd mobile
+  #       flutter build apk --release
+  #
+  #   - name: Build iOS IPA
+  #     run: |
+  #       cd mobile
+  #       flutter build ios --release --no-codesign
+  #
+  #   - name: Upload artifacts
+  #     uses: actions/upload-artifact@v3
+  #     with:
+  #       name: mobile-builds
+  #       path: |
+  #         mobile/build/app/outputs/flutter-apk/app-release.apk
+  #         mobile/build/ios/iphoneos/Runner.app
+
+  # 📢 Notifications
+  notify:
+    needs: [deploy-staging, deploy-production]
+    runs-on: ubuntu-latest
+    if: always()
+
+    steps:
+      - name: Notify Slack
+        uses: 8398a7/action-slack@v3
+        if: always()
+        with:
+          status: ${{ job.status }}
+          webhook_url: ${{ secrets.SLACK_WEBHOOK_URL }}
+          fields: repo,message,commit,author,action,eventName,ref,workflow
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+
+      - name: Notify Discord
+        uses: sarisia/actions-status-discord@v1
+        if: always()
+        with:
+          webhook: ${{ secrets.DISCORD_WEBHOOK }}
+          status: ${{ job.status }}
+          title: "CI/CD Pipeline"
+          description: |
+            **Repository:** ${{ github.repository }}
+            **Branch:** ${{ github.ref_name }}
+            **Commit:** ${{ github.sha }}
+            **Triggered by:** ${{ github.actor }}
+
+  # 🧹 Cleanup
+  cleanup:
+    runs-on: ubuntu-latest
+    if: always()
+    needs: [notify]
+
+    steps:
+      - name: Clean up old artifacts
+        uses: c-hive/gha-remove-artifacts@v1
+        with:
+          age: '7 days'
+          skip-tags: true
+          skip-recent: 5
+
+      - name: Clean up old packages
+        run: |
+          echo "Cleaning up old packages..."
+          # Add cleanup commands here
