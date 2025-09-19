@@ -65,8 +65,22 @@ function AppContent() {
     }
   }, [showInstallPrompt, user]);
 
-  // Show loading spinner while checking authentication
-  if (loading) {
+  // Show loading spinner while checking authentication (with timeout)
+  const [maxLoadingReached, setMaxLoadingReached] = useState(false);
+  
+  useEffect(() => {
+    // Force show homepage after 5 seconds if still loading
+    const timeout = setTimeout(() => {
+      if (loading) {
+        console.log('Max loading time reached, showing homepage');
+        setMaxLoadingReached(true);
+      }
+    }, 5000);
+    
+    return () => clearTimeout(timeout);
+  }, [loading]);
+
+  if (loading && !maxLoadingReached) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
         <LoadingSpinner size="large" />
@@ -75,7 +89,7 @@ function AppContent() {
   }
 
   // Authentication required routes
-  if (user) {
+  if (user && !maxLoadingReached) {
     return (
       <div className="min-h-screen bg-gray-50">
         <div className="flex h-screen">

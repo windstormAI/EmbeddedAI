@@ -10,6 +10,7 @@
     CI = "false"
     ESLINT_NO_DEV_ERRORS = "true"
     GENERATE_SOURCEMAP = "false"
+    REACT_APP_DEMO_MODE = "true"
 
 # Redirect rules for SPA
 [[redirects]]

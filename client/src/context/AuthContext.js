@@ -24,6 +24,12 @@ export const AuthProvider = ({ children }) => {
 
   // Initialize authentication on mount
   useEffect(() => {
+    // In demo mode or development, skip auth initialization
+    if (process.env.NODE_ENV === 'development' || process.env.REACT_APP_DEMO_MODE === 'true') {
+      console.log('Demo mode - skipping auth initialization');
+      setLoading(false);
+      return;
+    }
     initializeAuth();
   }, []);
 
@@ -64,14 +70,28 @@ export const AuthProvider = ({ children }) => {
       const storedToken = localStorage.getItem('token');
       if (storedToken) {
         setToken(storedToken);
-        // Verify token with server
-        const response = await api.get('/api/v1/auth/me');
-        setUser(response.data.data);
+        // Try to verify token with server with timeout
+        try {
+          const response = await Promise.race([
+            api.get('/api/v1/auth/me'),
+            new Promise((_, reject) => 
+              setTimeout(() => reject(new Error('Timeout')), 3000)
+            )
+          ]);
+          setUser(response.data.data);
+        } catch (apiError) {
+          // If API is not available, timeout, or token invalid, clear auth state
+          console.log('API not available, timeout, or token invalid - clearing auth state');
+          localStorage.removeItem('token');
+          setToken(null);
+          setUser(null);
+        }
       }
     } catch (error) {
       console.error('Auth initialization failed:', error);
       localStorage.removeItem('token');
       setToken(null);
+      setUser(null);
     } finally {
       setLoading(false);
     }
